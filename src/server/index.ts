@@ -4,7 +4,6 @@ import express, { Application } from 'express';
 import http from 'http';
 import { AddressInfo } from 'net';
 import Utils from '../common/utils';
-import { middlewares } from './middlewares';
 
 export default class Server {
   options: any;
@@ -33,6 +32,8 @@ export default class Server {
   }
 
   applyMiddlewares() {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const middlewares = require('./middlewares');
     middlewares.forEach((middleware) => {
       this.app.use(middleware);
     });

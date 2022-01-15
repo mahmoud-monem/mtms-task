@@ -6,9 +6,4 @@ import { error } from './response';
 // Routes
 import { routes } from './routes';
 
-export const middlewares = [
-  requestInterceptors,
-  authentication,
-  routes(),
-  error,
-];
+module.exports = [requestInterceptors, authentication, routes(), error];

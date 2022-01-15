@@ -1,7 +1,9 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Comment } from './comment.entity';
+import { Like } from './like.entity';
+import { Post } from './post.entity';
 
-@Index('email', ['email'], {})
-@Entity({ name: 'users' })
+@Entity({ name: 'user' })
 export class User {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
@@ -22,12 +24,21 @@ export class User {
   })
   image: string;
 
+  @Column('boolean', { name: 'is_deleted', default: false })
+  isDeleted: boolean;
+
   @Column('enum', {
     name: 'role',
     nullable: true,
     enum: ['user', 'admin'],
   })
   role: 'user' | 'admin' | null;
+
+  @Column('timestamp', {
+    name: 'birth_date',
+    nullable: true,
+  })
+  birthDate: Date;
 
   @Column('timestamp', {
     name: 'created_at',
@@ -41,4 +52,16 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  // Relations
+  // ------------------------------------------------------------------------------
+
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post[];
+
+  @OneToMany(() => Like, (like) => like.user)
+  likes: Like[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 }

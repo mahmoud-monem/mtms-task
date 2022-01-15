@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import { ValidationError } from '../../common/errors';
 
 class Validation {
-  validator: Ajv;
+  validator: any;
   constructor() {
     this.validator = new Ajv();
   }

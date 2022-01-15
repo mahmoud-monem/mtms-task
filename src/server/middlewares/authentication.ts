@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { UnauthenticatedError } from '../../common/errors';
-import { userRepository } from '../../database';
+import { UserRepository } from '../../database/repositories';
 import { AuthAccount } from '../../interfaces/AuthAccount.interface';
 
+const userRepository = new UserRepository();
 export async function authentication(req: Request, res: Response, next) {
   const authorization = req.headers.authorization;
   if (!authorization) {

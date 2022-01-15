@@ -14,4 +14,7 @@ export default () => ({
     maxPageSize: 100,
   },
   database: {},
+  authentication: {
+    key: 'this is authentication key for json web token for mtms task',
+  },
 });

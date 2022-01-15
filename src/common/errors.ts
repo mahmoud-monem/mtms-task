@@ -44,7 +44,7 @@ export class UnauthorizedError extends BaseError {
 export class ValidationError extends BaseError {
   errors: any;
 
-  constructor(message = 'Bad Request', errors) {
+  constructor(message = 'Bad Request', errors = null) {
     super(0, 'ValidationError', 400, message);
     this.errors = errors;
   }

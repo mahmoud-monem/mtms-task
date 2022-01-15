@@ -2,10 +2,10 @@ import { Request } from 'express';
 import Utils from '../../common/utils';
 import { aclResources } from '../../core/authorization/resources';
 import { BaseController } from '../../core/base.controller';
-import { AuthSchema } from './auth.schema';
-import authService from './auth.service';
+import { AuthSchema } from './user.schema';
+import authService from './user.service';
 
-class CountryController extends BaseController {
+class LikeController extends BaseController {
   constructor() {
     super({
       name: aclResources.AUTH,
@@ -52,4 +52,4 @@ class CountryController extends BaseController {
   }
 }
 
-module.exports = CountryController;
+module.exports = LikeController;
