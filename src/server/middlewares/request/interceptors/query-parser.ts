@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request } from 'express';
 import _ from 'lodash';
 import Utils from '../../../../common/utils';
 import config from '../../../../config';
 const { pageSize, maxPageSize } = config().common;
 
-export function queryParser(req: Request, res: Response, next: NextFunction) {
+export function queryParser(req: Request) {
   let page: number, limit: number;
   const { query } = req;
   const parsedQuery = {
@@ -61,6 +61,4 @@ export function queryParser(req: Request, res: Response, next: NextFunction) {
   });
 
   _.merge(req.query, parsedQuery);
-
-  return next();
 }

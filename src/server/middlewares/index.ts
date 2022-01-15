@@ -1,15 +1,14 @@
 import { authentication } from './authentication';
 // Request middlewares
-import { queryParser } from './request';
+import { requestInterceptors } from './request';
 // Response middlewares
-import { error, notFound } from './response';
+import { error } from './response';
 // Routes
-import { routers } from './routes';
+import { routes } from './routes';
 
 export const middlewares = [
-  error,
-  queryParser,
+  requestInterceptors,
   authentication,
-  ...routers,
-  notFound,
+  routes(),
+  error,
 ];

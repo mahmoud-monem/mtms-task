@@ -7,8 +7,8 @@ export async function notFound(
   next: NextFunction,
 ) {
   if (res.statusCode === 404) {
-    throw new NotFoundError();
+    throw new NotFoundError('Invalid url');
   }
 
-  return next();
+  next();
 }

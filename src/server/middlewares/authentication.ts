@@ -1,13 +1,9 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { UnauthenticatedError } from '../../common/errors';
 import { userRepository } from '../../database';
 import { AuthAccount } from '../../interfaces/AuthAccount.interface';
 
-export async function authentication(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function authentication(req: Request, res: Response, next) {
   const authorization = req.headers.authorization;
   if (!authorization) {
     req['account'] = publicAccount();
