@@ -1,10 +1,59 @@
 import { aclResources } from './resources';
-import { roles } from './roles';
+import { ROLES } from './roles';
 
 export const aclRoles = {
-  [roles.admin]: {},
-  [roles.user]: {},
-  public: {
+  [ROLES.admin]: {
+    [aclResources.USER]: {
+      'read:any': ['*'],
+      'update:any': ['*'],
+      'update:own': ['*'],
+      'delete:any': ['*'],
+    },
+    [aclResources.POST]: {
+      'create:any': ['*'],
+      'read:any': ['*'],
+      'update:any': ['*'],
+      'delete:any': ['*'],
+    },
+    [aclResources.LIKE]: {
+      'create:any': ['*'],
+      'read:any': ['*'],
+      'update:any': ['*'],
+      'delete:any': ['*'],
+    },
+    [aclResources.COMMENT]: {
+      'create:any': ['*'],
+      'read:any': ['*'],
+      'update:any': ['*'],
+      'delete:any': ['*'],
+    },
+  },
+  [ROLES.user]: {
+    [aclResources.USER]: {
+      'read:any': ['*'],
+      'update:own': ['*'],
+      'delete:own': ['*'],
+    },
+    [aclResources.POST]: {
+      'create:any': ['*'],
+      'read:any': ['*'],
+      'update:any': ['*'],
+      'delete:any': ['*'],
+    },
+    [aclResources.LIKE]: {
+      'create:any': ['*'],
+      'read:any': ['*'],
+      'update:any': ['*'],
+      'delete:any': ['*'],
+    },
+    [aclResources.COMMENT]: {
+      'create:any': ['*'],
+      'read:any': ['*'],
+      'update:any': ['*'],
+      'delete:any': ['*'],
+    },
+  },
+  [ROLES.public]: {
     [aclResources.AUTH]: {
       'create:any': ['*'],
       'read:any': ['*'],

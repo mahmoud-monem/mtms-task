@@ -1,4 +1,7 @@
 import { ConnectionOptions } from 'typeorm';
+import { Comment } from '../database/entities/comment.entity';
+import { Like } from '../database/entities/like.entity';
+import { Post } from '../database/entities/post.entity';
 import { User } from '../database/entities/user.entity';
 
 export default () =>
@@ -15,7 +18,7 @@ export default () =>
     autoReconnect: true,
     reconnectTries: Number.MAX_VALUE,
     reconnectInterval: 2000,
-    entities: [User],
+    entities: [User, Post, Like, Comment],
     migrations: [__dirname + `../migration/*.ts`],
     cli: {
       entitiesDir: '../database/entities',

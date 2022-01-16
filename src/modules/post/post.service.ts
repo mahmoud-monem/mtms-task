@@ -1,61 +1,34 @@
+import _ from 'lodash';
 import { getCustomRepository } from 'typeorm';
-import { cryptoService } from '../../common/crypto';
-import { NotFoundError, ValidationError } from '../../common/errors';
-import { UserRepository } from '../../database/repositories';
+import { PostRepository } from '../../database/repositories/post.repository';
+import { CreateDto } from './post.interface';
 
-const SEVEN_DAYS = 7 * 24 * 3600000;
-
-class AuthService {
-  userRepository: UserRepository;
+class PostService {
+  postRepository: PostRepository;
 
   constructor() {
-    this.userRepository = getCustomRepository(UserRepository);
+    this.postRepository = getCustomRepository(PostRepository);
   }
 
-  async login(loginDto: any, isFourteen: boolean): Promise<any> {
-    const user = await this.userRepository.findOne({
-      email: loginDto.username,
+  async create(createDto: CreateDto): Promise<any> {
+    const res = await this.postRepository.insert(createDto);
+    const post = await this.postRepository.findOne(res.identifiers[0].id, {
+      relations: ['user'],
     });
-    if (!user || !cryptoService.compareHash(loginDto.password, user.password)) {
-      throw new NotFoundError('Wrong username or password');
-    }
-    let timeout = SEVEN_DAYS;
-    if (isFourteen) {
-      timeout += SEVEN_DAYS;
-    }
-    return this._getUserResponse(user, timeout);
+    return this._getPostResponse(post);
   }
 
-  async register(createDto) {
-    const existUser = await this.userRepository.findOne({
-      email: createDto.email,
-    });
-
-    if (existUser) {
-      throw new ValidationError('This email already exist in the database');
-    }
-    createDto.password = cryptoService.createHash(createDto.password);
-    createDto.role = 'user';
-    const res = await this.userRepository.insert(createDto);
-    const user = await this.userRepository.findOne(res.identifiers[0].id);
-    return this._getUserResponse(user);
-  }
-
-  async _getUserResponse(user, timeout = SEVEN_DAYS): Promise<any> {
-    return cryptoService
-      .createJwtTokenWithExpiration(
-        {
-          sub: user.id.toString(),
-        },
-        timeout,
-      )
-      .then((token) => {
-        return {
-          token,
-          user,
-        };
-      });
+  private async _getPostResponse(post: any) {
+    post.user = _.omit(post.user, [
+      'password',
+      'updatedAt',
+      'createdAt',
+      'isDeleted',
+      'birthDate',
+      'role',
+    ]);
+    return post;
   }
 }
 
-export default new AuthService();
+export default new PostService();

@@ -1,6 +1,7 @@
-export const roles = {
+export const ROLES = {
   admin: 'admin',
   user: 'user',
+  public: 'public',
 };
 
-export const rolesEnum = ['admin', 'user', 'courier'];
+export const ROLES_ENUM = ['admin', 'user'];
