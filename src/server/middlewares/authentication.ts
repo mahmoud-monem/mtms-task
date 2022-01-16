@@ -13,11 +13,15 @@ export async function authentication(req: Request, res: Response, next) {
     req['account'] = publicAccount();
     return next();
   }
-  const jwtPayload = await cryptoService.verifyJwtToken(authorization);
-  if (jwtPayload) {
-    const { sub } = jwtPayload;
-    req['account'] = await findAndValidateAccount(sub);
-    return next();
+  try {
+    const jwtPayload = await cryptoService.verifyJwtToken(authorization);
+    if (jwtPayload) {
+      const { sub } = jwtPayload;
+      req['account'] = await findAndValidateAccount(sub);
+      return next();
+    }
+  } catch (err) {
+    next(err);
   }
   throw new UnauthenticatedError('Invalid Account');
 }
