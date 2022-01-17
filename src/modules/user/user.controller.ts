@@ -7,7 +7,7 @@ class UserPostController extends BaseController {
   service: UserService;
   constructor() {
     super({
-      name: aclResources.USER_POST,
+      name: aclResources.USER,
       service: new UserService(),
       path: '/users',
       routes: [

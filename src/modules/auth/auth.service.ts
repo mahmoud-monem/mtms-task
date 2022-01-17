@@ -1,6 +1,10 @@
 import { getCustomRepository } from 'typeorm';
 import { cryptoService } from '../../common/crypto';
-import { NotFoundError, ValidationError } from '../../common/errors';
+import {
+  NotFoundError,
+  UnauthenticatedError,
+  ValidationError,
+} from '../../common/errors';
 import { UserRepository } from '../../database/repositories';
 
 const SEVEN_DAYS = 7 * 24 * 3600000;
@@ -18,6 +22,9 @@ class AuthService {
     });
     if (!user || !cryptoService.compareHash(loginDto.password, user.password)) {
       throw new NotFoundError('Wrong username or password');
+    }
+    if (user.isDeleted) {
+      throw new UnauthenticatedError('this account is deleted');
     }
     let timeout = SEVEN_DAYS;
     if (isFourteen) {

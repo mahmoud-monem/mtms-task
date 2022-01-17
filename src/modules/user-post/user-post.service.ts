@@ -1,6 +1,10 @@
 import _ from 'lodash';
 import { getCustomRepository, Like } from 'typeorm';
-import { NotFoundError, ValidationError } from '../../common/errors';
+import {
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from '../../common/errors';
 import { PostRepository } from '../../database/repositories/post.repository';
 import { CreateDto, UpdateDto } from './user-post.interface';
 
@@ -40,10 +44,13 @@ class UserPostService {
     return this._getPostResponse(posts);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
     const post = await this.postRepository.findOne(id, { relations: ['user'] });
     if (!post) {
       throw new NotFoundError('there is no post with this id');
+    }
+    if (post.user.id.toString() !== userId) {
+      throw new NotFoundError('there is no post with this id for this user');
     }
     if (post.isDeleted) {
       throw new ValidationError('this post is deleted', null);
@@ -51,10 +58,15 @@ class UserPostService {
     return this._getPostResponse(post);
   }
 
-  async update(id: string, updateDto: UpdateDto) {
-    const existPost = await this.postRepository.findOne(id);
+  async update(id: string, updateDto: UpdateDto, userId: string) {
+    const existPost = await this.postRepository.findOne(id, {
+      relations: ['user'],
+    });
     if (!existPost) {
       throw new NotFoundError('there is no post with this id');
+    }
+    if (existPost.user.id.toString() !== userId) {
+      throw new UnauthorizedError("You can't update this post");
     }
     if (existPost.isDeleted) {
       throw new ValidationError('this post is deleted', null);
@@ -64,10 +76,15 @@ class UserPostService {
     return this._getPostResponse(post);
   }
 
-  async delete(id: string) {
-    const existPost = await this.postRepository.findOne(id);
+  async delete(id: string, userId: string) {
+    const existPost = await this.postRepository.findOne(id, {
+      relations: ['user'],
+    });
     if (!existPost) {
       throw new NotFoundError('there is no post with this id');
+    }
+    if (existPost.user.id.toString() !== userId) {
+      throw new UnauthorizedError("You can't delete this post");
     }
     if (existPost.isDeleted) {
       throw new ValidationError('this post is already deleted', null);

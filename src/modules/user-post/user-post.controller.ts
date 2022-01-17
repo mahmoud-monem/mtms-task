@@ -51,7 +51,7 @@ class UserPostController extends BaseController {
   async findOne(req, res, next) {
     try {
       await this.authorize(req, 'readAny');
-      res.send(await this.service.findOne(req.params.id));
+      res.send(await this.service.findOne(req.params.id, req.params.userId));
     } catch (err) {
       next(err);
     }
@@ -65,7 +65,9 @@ class UserPostController extends BaseController {
         () => req.params.userId === req.account.id.toString(),
       );
       this.validate(PostSchema.update, req.body, false);
-      res.send(await this.service.update(req.params.id, req.body));
+      res.send(
+        await this.service.update(req.params.id, req.body, req.params.userId),
+      );
     } catch (err) {
       next(err);
     }
@@ -78,7 +80,7 @@ class UserPostController extends BaseController {
         'deleteOwn',
         () => req.params.userId === req.account.id.toString(),
       );
-      res.send(await this.service.delete(req.params.id));
+      res.send(await this.service.delete(req.params.id, req.params.userId));
     } catch (err) {
       next(err);
     }
