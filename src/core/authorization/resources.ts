@@ -3,6 +3,7 @@ export const aclResources = {
   ROOT: 'root',
   USER: 'user',
   POST: 'post',
+  USER_POST: 'userPost',
   LIKE: 'like',
   COMMENT: 'comment',
 };

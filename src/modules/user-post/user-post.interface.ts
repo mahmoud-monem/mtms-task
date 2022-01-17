@@ -4,3 +4,7 @@ export interface CreateDto {
   text: string;
   user: User;
 }
+
+export interface UpdateDto {
+  text: string;
+}

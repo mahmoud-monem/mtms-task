@@ -57,16 +57,15 @@ function buildControllerRouter(controller) {
     }
 
     const routerArgs = [
-      path,
       afterAction.bind(controller),
       beforeAction.bind(controller),
       actions[handler].bind(controller),
     ];
 
-    router[method.toLowerCase()](...routerArgs);
+    router[method.toLowerCase()](ctrlPath + path, ...routerArgs);
   });
 
-  return [ctrlPath, router];
+  return router;
 }
 
 export function routes() {
@@ -79,7 +78,7 @@ export function routes() {
   });
 
   routes.forEach((route) => {
-    router.use(...route);
+    router.use(route);
   });
 
   return router;

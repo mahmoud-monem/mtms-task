@@ -2,12 +2,21 @@ import _ from 'lodash';
 import { getCustomRepository, Like } from 'typeorm';
 import { NotFoundError, ValidationError } from '../../common/errors';
 import { PostRepository } from '../../database/repositories/post.repository';
+import { CreateDto, UpdateDto } from './user-post.interface';
 
-class PostService {
+class UserPostService {
   postRepository: PostRepository;
 
   constructor() {
     this.postRepository = getCustomRepository(PostRepository);
+  }
+
+  async create(createDto: CreateDto): Promise<any> {
+    const res = await this.postRepository.insert(createDto);
+    const post = await this.postRepository.findOne(res.identifiers[0].id, {
+      relations: ['user'],
+    });
+    return this._getPostResponse(post);
   }
 
   async find(params) {
@@ -42,6 +51,28 @@ class PostService {
     return this._getPostResponse(post);
   }
 
+  async update(id: string, updateDto: UpdateDto) {
+    const existPost = await this.postRepository.findOne(id);
+    if (!existPost) {
+      throw new NotFoundError('there is no post with this id');
+    }
+    if (existPost.isDeleted) {
+      throw new ValidationError('this post is deleted', null);
+    }
+    await this.postRepository.update(id, updateDto);
+    const post = await this.postRepository.findOne(id, { relations: ['user'] });
+    return this._getPostResponse(post);
+  }
+
+  async delete(id: string) {
+    const existPost = await this.postRepository.findOne(id);
+    if (!existPost) {
+      throw new NotFoundError('there is no post with this id');
+    }
+    await this.postRepository.update(id, { isDeleted: true });
+    return { message: 'the post is deleted successfully' };
+  }
+
   private async _getPostResponse(posts: any) {
     if (!Array.isArray(posts)) {
       posts = [posts];
@@ -60,4 +91,4 @@ class PostService {
   }
 }
 
-export default new PostService();
+export default new UserPostService();
