@@ -41,13 +41,13 @@ export class LikeService {
   }
 
   async find(params) {
-    const nQuery = {};
+    const query = {};
     if (params.postId) {
-      nQuery['post'] = params.postId;
+      query['post'] = params.postId;
     }
     return this.likeRepository.getAll(
       {
-        where: nQuery,
+        where: query,
         relations: ['user'],
       },
       params,

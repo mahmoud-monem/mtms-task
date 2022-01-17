@@ -1,61 +1,64 @@
-import { getCustomRepository } from 'typeorm';
-import { cryptoService } from '../../common/crypto';
+import { getCustomRepository, Like } from 'typeorm';
 import { NotFoundError, ValidationError } from '../../common/errors';
 import { UserRepository } from '../../database/repositories';
+import { UpdateDto } from './user.interface';
 
-const SEVEN_DAYS = 7 * 24 * 3600000;
-
-class AuthService {
+export class UserService {
   userRepository: UserRepository;
 
   constructor() {
     this.userRepository = getCustomRepository(UserRepository);
   }
 
-  async login(loginDto: any, isFourteen: boolean): Promise<any> {
-    const user = await this.userRepository.findOne({
-      email: loginDto.username,
-    });
-    if (!user || !cryptoService.compareHash(loginDto.password, user.password)) {
-      throw new NotFoundError('Wrong username or password');
+  async find(params) {
+    const query = [];
+    const nQuery = { isDeleted: false };
+    if (params.search) {
+      query.push({ name: Like(`%${params.search}%`), ...nQuery });
+      query.push({ email: Like(`%${params.search}%`), ...nQuery });
     }
-    let timeout = SEVEN_DAYS;
-    if (isFourteen) {
-      timeout += SEVEN_DAYS;
-    }
-    return this._getUserResponse(user, timeout);
+    return this.userRepository.getAll(
+      {
+        where: query.length ? query : nQuery,
+      },
+      params,
+    );
   }
 
-  async register(createDto) {
-    const existUser = await this.userRepository.findOne({
-      email: createDto.email,
-    });
-
-    if (existUser) {
-      throw new ValidationError('This email already exist in the database');
+  async findOne(id: string) {
+    const user = await this.userRepository.findOne(id);
+    if (!user) {
+      throw new NotFoundError('there is no user with this id');
     }
-    createDto.password = cryptoService.createHash(createDto.password);
-    createDto.role = 'user';
-    const res = await this.userRepository.insert(createDto);
-    const user = await this.userRepository.findOne(res.identifiers[0].id);
-    return this._getUserResponse(user);
+    if (user.isDeleted) {
+      throw new ValidationError('this user is deleted', null);
+    }
+    return user;
   }
 
-  async _getUserResponse(user, timeout = SEVEN_DAYS): Promise<any> {
-    return cryptoService
-      .createJwtTokenWithExpiration(
-        {
-          sub: user.id.toString(),
-        },
-        timeout,
-      )
-      .then((token) => {
-        return {
-          token,
-          user,
-        };
-      });
+  async update(id: string, updateDto: UpdateDto) {
+    const existUser = await this.userRepository.findOne(id);
+    if (!existUser) {
+      throw new NotFoundError('there is no user with this id');
+    }
+    if (existUser.isDeleted) {
+      throw new ValidationError('this user is deleted', null);
+    }
+    await this.userRepository.update(id, updateDto);
+    return this.userRepository.findOne(id);
+  }
+
+  async delete(id: string) {
+    const existUser = await this.userRepository.findOne(id);
+    if (!existUser) {
+      throw new NotFoundError('there is no user with this id');
+    }
+    if (existUser.isDeleted) {
+      throw new ValidationError('this user is already deleted', null);
+    }
+    await this.userRepository.update(id, { isDeleted: true });
+    return { message: 'the user is deleted successfully' };
   }
 }
 
-export default new AuthService();
+export default new UserService();

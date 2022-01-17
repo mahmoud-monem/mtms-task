@@ -5,19 +5,23 @@ export const aclRoles = {
   [ROLES.admin]: {
     [aclResources.USER]: {
       'read:any': ['*', '!password'],
-      'create:any': ['*'],
+      'read:own': ['*', '!password'],
       'update:own': ['*', '!password', '!email'],
+      'delete:any': ['*'],
+    },
+    [aclResources.USER_POST]: {
+      'read:any': ['*'],
+      'read:own': ['*'],
+      'create:own': ['*'],
+      'update:own': ['*'],
+      'delete:own': ['*'],
     },
     [aclResources.POST]: {
-      'create:own': ['*'],
       'read:any': ['*'],
-      'update:any': ['*'],
-      'delete:any': ['*'],
     },
     [aclResources.LIKE]: {
       'create:any': ['*'],
       'read:any': ['*'],
-      'update:any': ['*'],
       'delete:any': ['*'],
     },
     [aclResources.COMMENT]: {
@@ -32,6 +36,7 @@ export const aclRoles = {
       'read:any': ['*', '!password'],
       'read:own': ['*', '!password'],
       'update:own': ['*', '!password', '!email'],
+      'delete:own': ['*'],
     },
     [aclResources.USER_POST]: {
       'read:any': ['*'],

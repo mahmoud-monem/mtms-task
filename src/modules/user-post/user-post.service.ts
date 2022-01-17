@@ -69,6 +69,9 @@ class UserPostService {
     if (!existPost) {
       throw new NotFoundError('there is no post with this id');
     }
+    if (existPost.isDeleted) {
+      throw new ValidationError('this post is already deleted', null);
+    }
     await this.postRepository.update(id, { isDeleted: true });
     return { message: 'the post is deleted successfully' };
   }

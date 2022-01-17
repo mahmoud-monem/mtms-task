@@ -1,22 +1,18 @@
-export const AuthSchema = {
-  login: {
+export const CommentSchema = {
+  create: {
     type: 'object',
     properties: {
-      username: { type: 'string' },
-      password: { type: 'string', minLength: 6 },
+      text: { type: 'string' },
     },
-    required: ['username', 'password'],
+    required: ['text'],
     additionalProperties: false,
   },
-  register: {
+  update: {
     type: 'object',
     properties: {
-      name: { type: 'string' },
-      email: { type: 'string', format: 'email' },
-      password: { type: 'string', minLength: 6 },
-      birthDate: { type: 'string', format: 'date-time' },
+      text: { type: 'string' },
     },
-    required: ['email', 'password', 'name', 'birthDate'],
+    required: ['text'],
     additionalProperties: false,
   },
 };

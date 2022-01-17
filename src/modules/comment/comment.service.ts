@@ -1,61 +1,80 @@
 import { getCustomRepository } from 'typeorm';
-import { cryptoService } from '../../common/crypto';
 import { NotFoundError, ValidationError } from '../../common/errors';
-import { UserRepository } from '../../database/repositories';
+import { CommentRepository } from '../../database/repositories/comment.repository';
+import { PostRepository } from '../../database/repositories/post.repository';
+import { CreateDto, UpdateDto } from './comment.interface';
 
-const SEVEN_DAYS = 7 * 24 * 3600000;
-
-class AuthService {
-  userRepository: UserRepository;
+export class CommentService {
+  postRepository: PostRepository;
+  commentRepository: CommentRepository;
 
   constructor() {
-    this.userRepository = getCustomRepository(UserRepository);
+    this.postRepository = getCustomRepository(PostRepository);
+    this.commentRepository = getCustomRepository(CommentRepository);
   }
 
-  async login(loginDto: any, isFourteen: boolean): Promise<any> {
-    const user = await this.userRepository.findOne({
-      email: loginDto.username,
+  async create(createDto: CreateDto): Promise<any> {
+    const existPost = await this.postRepository.findOne({
+      id: createDto.post,
+      isDeleted: false,
     });
-    if (!user || !cryptoService.compareHash(loginDto.password, user.password)) {
-      throw new NotFoundError('Wrong username or password');
+    if (!existPost) {
+      throw new NotFoundError('there is no post with this id');
     }
-    let timeout = SEVEN_DAYS;
-    if (isFourteen) {
-      timeout += SEVEN_DAYS;
-    }
-    return this._getUserResponse(user, timeout);
-  }
-
-  async register(createDto) {
-    const existUser = await this.userRepository.findOne({
-      email: createDto.email,
+    const res = await this.commentRepository.insert({
+      ...createDto,
+      post: existPost,
     });
-
-    if (existUser) {
-      throw new ValidationError('This email already exist in the database');
-    }
-    createDto.password = cryptoService.createHash(createDto.password);
-    createDto.role = 'user';
-    const res = await this.userRepository.insert(createDto);
-    const user = await this.userRepository.findOne(res.identifiers[0].id);
-    return this._getUserResponse(user);
+    return this.commentRepository.findOne(res.identifiers[0].id, {
+      relations: ['user'],
+    });
   }
 
-  async _getUserResponse(user, timeout = SEVEN_DAYS): Promise<any> {
-    return cryptoService
-      .createJwtTokenWithExpiration(
-        {
-          sub: user.id.toString(),
-        },
-        timeout,
-      )
-      .then((token) => {
-        return {
-          token,
-          user,
-        };
-      });
+  async find(params) {
+    const query = { isDeleted: false };
+    if (params.userId) {
+      query['user'] = params.userId;
+    }
+    return this.commentRepository.getAll(
+      {
+        where: query,
+        relations: ['user'],
+      },
+      params,
+    );
+  }
+
+  async update(id: string, updateDto: UpdateDto, userId: number) {
+    const existComment = await this.commentRepository.findOne(id, {
+      relations: ['user'],
+    });
+    if (!existComment) {
+      throw new NotFoundError('there is no comment with this id');
+    }
+    if (existComment.user.id !== userId) {
+      throw new ValidationError("you can't edit this comment");
+    }
+    if (existComment.isDeleted) {
+      throw new ValidationError('this comment is deleted', null);
+    }
+    await this.commentRepository.update(id, updateDto);
+    return this.commentRepository.findOne(id, { relations: ['user'] });
+  }
+
+  async delete(id: string, userId: number) {
+    const existComment = await this.commentRepository.findOne(id, {
+      relations: ['user'],
+    });
+    if (!existComment) {
+      throw new NotFoundError('there is no comment with this id');
+    }
+    if (existComment.user.id !== userId) {
+      throw new ValidationError("you can't delete this comment");
+    }
+    if (existComment.isDeleted) {
+      throw new ValidationError('this comment is already deleted', null);
+    }
+    await this.commentRepository.update(id, { isDeleted: true });
+    return { message: 'the comment is deleted successfully' };
   }
 }
-
-export default new AuthService();
