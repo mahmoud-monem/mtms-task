@@ -13,9 +13,6 @@ class PostService {
   async find(params) {
     const query = [];
     const nQuery = { isDeleted: false };
-    if (params.userId) {
-      nQuery['user'] = params.userId;
-    }
     if (params.search) {
       query.push({ text: Like(`%${params.search}%`), ...nQuery });
       query.push({ user: { name: Like(`%${params.search}%`) }, ...nQuery });

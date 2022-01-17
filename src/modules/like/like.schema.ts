@@ -1,5 +1,5 @@
 export const AuthSchema = {
-  login: {
+  create: {
     type: 'object',
     properties: {
       username: { type: 'string' },

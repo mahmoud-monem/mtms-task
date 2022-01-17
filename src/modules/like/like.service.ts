@@ -1,61 +1,70 @@
 import { getCustomRepository } from 'typeorm';
-import { cryptoService } from '../../common/crypto';
 import { NotFoundError, ValidationError } from '../../common/errors';
-import { UserRepository } from '../../database/repositories';
+import { LikeRepository } from '../../database/repositories/like.repository';
+import { PostRepository } from '../../database/repositories/post.repository';
+import { CreateDto } from './like.interface';
 
-const SEVEN_DAYS = 7 * 24 * 3600000;
-
-class AuthService {
-  userRepository: UserRepository;
+export class LikeService {
+  likeRepository: LikeRepository;
+  postRepository: PostRepository;
 
   constructor() {
-    this.userRepository = getCustomRepository(UserRepository);
+    this.likeRepository = getCustomRepository(LikeRepository);
+    this.postRepository = getCustomRepository(PostRepository);
   }
 
-  async login(loginDto: any, isFourteen: boolean): Promise<any> {
-    const user = await this.userRepository.findOne({
-      email: loginDto.username,
+  async create(createDto: CreateDto): Promise<any> {
+    const existPost = await this.postRepository.findOne({
+      id: createDto.post,
+      isDeleted: false,
     });
-    if (!user || !cryptoService.compareHash(loginDto.password, user.password)) {
-      throw new NotFoundError('Wrong username or password');
+    if (!existPost) {
+      throw new NotFoundError('there is no post with this id');
     }
-    let timeout = SEVEN_DAYS;
-    if (isFourteen) {
-      timeout += SEVEN_DAYS;
+    const existLike = await this.likeRepository.findOne(
+      {
+        post: { id: Number(createDto.post) },
+        user: { id: createDto.user.id },
+      },
+      { relations: ['user', 'post'] },
+    );
+    if (existLike) {
+      throw new ValidationError('this user has liked this post before');
     }
-    return this._getUserResponse(user, timeout);
-  }
-
-  async register(createDto) {
-    const existUser = await this.userRepository.findOne({
-      email: createDto.email,
+    const res = await this.likeRepository.insert({
+      ...createDto,
+      post: existPost,
     });
-
-    if (existUser) {
-      throw new ValidationError('This email already exist in the database');
-    }
-    createDto.password = cryptoService.createHash(createDto.password);
-    createDto.role = 'user';
-    const res = await this.userRepository.insert(createDto);
-    const user = await this.userRepository.findOne(res.identifiers[0].id);
-    return this._getUserResponse(user);
+    return this.likeRepository.findOne(res.identifiers[0].id, {
+      relations: ['user'],
+    });
   }
 
-  async _getUserResponse(user, timeout = SEVEN_DAYS): Promise<any> {
-    return cryptoService
-      .createJwtTokenWithExpiration(
-        {
-          sub: user.id.toString(),
-        },
-        timeout,
-      )
-      .then((token) => {
-        return {
-          token,
-          user,
-        };
-      });
+  async find(params) {
+    const nQuery = {};
+    if (params.postId) {
+      nQuery['post'] = params.postId;
+    }
+    return this.likeRepository.getAll(
+      {
+        where: nQuery,
+        relations: ['user'],
+      },
+      params,
+    );
+  }
+
+  async delete(id: string, userId: number) {
+    const existLike = await this.likeRepository.findOne(id, {
+      relations: ['user'],
+    });
+    if (!existLike) {
+      throw new NotFoundError('there is no like with this id');
+    }
+    if (existLike.user.id !== userId) {
+      throw new ValidationError("you can't delete this like");
+    }
+    await this.likeRepository.delete(id);
+    return { message: 'the like is deleted successfully' };
   }
 }
-
-export default new AuthService();

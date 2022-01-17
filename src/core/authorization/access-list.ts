@@ -46,7 +46,6 @@ export const aclRoles = {
     [aclResources.LIKE]: {
       'create:any': ['*'],
       'read:any': ['*'],
-      'update:any': ['*'],
       'delete:any': ['*'],
     },
     [aclResources.COMMENT]: {
